@@ -17,6 +17,7 @@ interface FormData {
   description: string;
   fields: FormField[];
   tags: string[];
+  backgroundColor: string;
 }
 
 export default function FormBuilder() {
@@ -33,7 +34,8 @@ export default function FormBuilder() {
       { id: '3', type: 'email', label: 'Email', placeholder: 'Enter email address', required: true },
       { id: '4', type: 'phone', label: 'Phone', placeholder: 'Enter phone number', required: true },
     ],
-    tags: []
+    tags: [],
+    backgroundColor: '#f9f9f9'
   });
 
   const [loading, setLoading] = useState(false);
@@ -64,7 +66,8 @@ export default function FormBuilder() {
           name: form.name,
           description: form.description || '',
           fields: form.fields,
-          tags: form.tags || []
+          tags: form.tags || [],
+          backgroundColor: form.backgroundColor || '#f9f9f9'
         });
       }
     } catch (error) {
@@ -222,6 +225,28 @@ export default function FormBuilder() {
                     rows={3}
                     placeholder="Describe the purpose of this form"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Background Color
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="color"
+                      value={formData.backgroundColor}
+                      onChange={(e) => setFormData(prev => ({ ...prev, backgroundColor: e.target.value }))}
+                      className="w-12 h-10 border border-gray-300 rounded-lg cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      value={formData.backgroundColor}
+                      onChange={(e) => setFormData(prev => ({ ...prev, backgroundColor: e.target.value }))}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="#f9f9f9"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">Choose a background color for your form</p>
                 </div>
               </div>
             </div>
@@ -410,7 +435,10 @@ export default function FormBuilder() {
               </div>
               
               {showPreview && (
-                <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                <div 
+                  className="border border-gray-200 rounded-lg p-4"
+                  style={{ backgroundColor: formData.backgroundColor }}
+                >
                   <h3 className="text-lg font-semibold mb-2">{formData.name || 'Untitled Form'}</h3>
                   {formData.description && (
                     <p className="text-gray-600 mb-4">{formData.description}</p>
@@ -425,12 +453,12 @@ export default function FormBuilder() {
                         {field.type === 'textarea' ? (
                           <textarea
                             placeholder={field.placeholder}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white"
                             rows={3}
                             disabled
                           />
                         ) : field.type === 'select' ? (
-                          <select className="w-full px-3 py-2 border border-gray-300 rounded-md" disabled>
+                          <select className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white" disabled>
                             <option>Select an option</option>
                             {field.options?.map((option, idx) => (
                               <option key={idx}>{option}</option>
@@ -440,7 +468,7 @@ export default function FormBuilder() {
                           <input
                             type={field.type}
                             placeholder={field.placeholder}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white"
                             disabled
                           />
                         )}

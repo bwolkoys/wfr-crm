@@ -18,6 +18,7 @@ interface Form {
   fields: FormField[];
   tags: string[];
   created_at: string;
+  backgroundColor?: string;
 }
 
 export default function FormsPage() {
@@ -116,7 +117,7 @@ export default function FormsPage() {
     max-width: 600px;
     margin: 0 auto;
     padding: 20px;
-    background: #f9f9f9;
+    background: ${form.backgroundColor || '#f9f9f9'};
     border-radius: 8px;
   }
   

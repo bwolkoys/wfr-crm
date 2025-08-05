@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-const { insertContact, getAllContacts, searchContacts } = require('../../../lib/database');
+const DatabaseManager = require('../../../lib/database');
+const db = new DatabaseManager();
 
 export async function POST(request) {
   try {
@@ -15,20 +16,21 @@ export async function POST(request) {
     }
 
     // Insert contact into database
-    const result = insertContact.run(
+    const contact = db.createContact({
       firstName,
       lastName,
-      email || null,
-      phone || null,
-      source || null,
-      tags || null,
-      notes || null
-    );
+      email: email || null,
+      phone: phone || null,
+      source: source || null,
+      tags: tags || null,
+      notes: notes || null
+    });
 
     return NextResponse.json(
       { 
         message: 'Contact created successfully',
-        id: result.lastInsertRowid
+        id: contact.id,
+        contact
       },
       { status: 201 }
     );
@@ -49,10 +51,9 @@ export async function GET(request) {
 
     let contacts;
     if (query) {
-      const searchTerm = `%${query}%`;
-      contacts = searchContacts.all(searchTerm, searchTerm, searchTerm, searchTerm, searchTerm);
+      contacts = db.searchContacts(query);
     } else {
-      contacts = getAllContacts.all();
+      contacts = db.getAllContacts();
     }
 
     return NextResponse.json(contacts);

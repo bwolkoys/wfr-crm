@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
-const { getContactById, updateContact, deleteContact } = require('../../../../lib/database');
+const DatabaseManager = require('../../../../lib/database');
+const db = new DatabaseManager();
 
 export async function GET(request, { params }) {
   try {
     const { id } = await params;
-    const contact = getContactById.get(id);
+    const contact = db.getContact(id);
     
     if (!contact) {
       return NextResponse.json(
@@ -38,18 +39,17 @@ export async function PUT(request, { params }) {
     }
 
     // Update contact in database
-    const result = updateContact.run(
+    const updatedContact = db.updateContact(id, {
       firstName,
       lastName,
-      email || null,
-      phone || null,
-      source || null,
-      tags || null,
-      notes || null,
-      id
-    );
+      email: email || null,
+      phone: phone || null,
+      source: source || null,
+      tags: tags || null,
+      notes: notes || null
+    });
 
-    if (result.changes === 0) {
+    if (!updatedContact) {
       return NextResponse.json(
         { error: 'Contact not found' },
         { status: 404 }
@@ -58,7 +58,7 @@ export async function PUT(request, { params }) {
 
     return NextResponse.json({ 
       message: 'Contact updated successfully',
-      id: id
+      contact: updatedContact
     });
 
   } catch (error) {
@@ -74,7 +74,7 @@ export async function DELETE(request, { params }) {
   try {
     const { id } = await params;
     
-    const result = deleteContact.run(id);
+    const result = db.deleteContact(id);
 
     if (result.changes === 0) {
       return NextResponse.json(

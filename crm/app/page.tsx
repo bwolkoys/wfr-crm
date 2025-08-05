@@ -181,6 +181,19 @@ export default function Dashboard() {
                   <div className="text-sm text-gray-500">Create Forms to Add to Wix</div>
                 </div>
               </Link>
+
+              <Link 
+                href="/forms"
+                className="bg-white hover:bg-gray-50 border-2 border-yellow-200 hover:border-yellow-300 text-gray-900 font-semibold py-6 px-6 rounded-xl transition-all duration-200 flex items-center gap-3 group"
+              >
+                <div className="w-10 h-10 bg-yellow-100 group-hover:bg-yellow-200 rounded-lg flex items-center justify-center transition-colors">
+                  <span className="text-yellow-600 text-lg">📋</span>
+                </div>
+                <div className="text-left">
+                  <div className="font-semibold text-gray-900">View All Forms</div>
+                  <div className="text-sm text-gray-500">Browse and manage forms</div>
+                </div>
+              </Link>
             </div>
           </div>
         </div>
