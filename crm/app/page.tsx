@@ -21,7 +21,7 @@ export default function Dashboard() {
             Weedon Family Ranch CRM
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Manage your ranch operations, contacts, and communications all in one place
+            Ranch Life Elevated
           </p>
         </div>
 
@@ -89,7 +89,7 @@ export default function Dashboard() {
           {/* Contact Management */}
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Contact Management</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
               <button 
                 onClick={() => setIsContactFormOpen(true)}
                 className="bg-white hover:bg-gray-50 border-2 border-blue-200 hover:border-blue-300 text-gray-900 font-semibold py-6 px-6 rounded-xl transition-all duration-200 flex items-center gap-3 group"
@@ -116,15 +116,6 @@ export default function Dashboard() {
                 </div>
               </Link>
               
-              <button className="bg-white hover:bg-gray-50 border-2 border-orange-200 hover:border-orange-300 text-gray-900 font-semibold py-6 px-6 rounded-xl transition-all duration-200 flex items-center gap-3 group">
-                <div className="w-10 h-10 bg-orange-100 group-hover:bg-orange-200 rounded-lg flex items-center justify-center transition-colors">
-                  <span className="text-orange-600 text-lg">🏷️</span>
-                </div>
-                <div className="text-left">
-                  <div className="font-semibold text-gray-900">Manage Tags</div>
-                  <div className="text-sm text-gray-500">Organize contact categories</div>
-                </div>
-              </button>
             </div>
           </div>
 
@@ -177,6 +168,19 @@ export default function Dashboard() {
                   <div className="text-sm text-gray-500">View scheduled activities</div>
                 </div>
               </button>
+
+              <Link 
+                href="/form-builder"
+                className="bg-white hover:bg-gray-50 border-2 border-orange-200 hover:border-orange-300 text-gray-900 font-semibold py-6 px-6 rounded-xl transition-all duration-200 flex items-center gap-3 group"
+              >
+                <div className="w-10 h-10 bg-orange-100 group-hover:bg-orange-200 rounded-lg flex items-center justify-center transition-colors">
+                  <span className="text-orange-600 text-lg">🏷️</span>
+                </div>
+                <div className="text-left">
+                  <div className="font-semibold text-gray-900">Create A Form</div>
+                  <div className="text-sm text-gray-500">Create Forms to Add to Wix</div>
+                </div>
+              </Link>
             </div>
           </div>
         </div>
