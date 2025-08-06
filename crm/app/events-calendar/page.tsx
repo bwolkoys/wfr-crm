@@ -7,6 +7,7 @@ interface Event {
   id: string;
   title: string;
   date: Date;
+  endDate?: Date;
   type: 'booked' | 'blocked' | 'tentative';
   description?: string;
   clientName?: string;
@@ -22,6 +23,7 @@ export default function EventsCalendar() {
   const [eventTitle, setEventTitle] = useState('');
   const [eventDescription, setEventDescription] = useState('');
   const [clientName, setClientName] = useState('');
+  const [eventEndDate, setEventEndDate] = useState<Date | null>(null);
   const [isConnectedToGoogle, setIsConnectedToGoogle] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
@@ -37,6 +39,7 @@ export default function EventsCalendar() {
           id: event.id.toString(),
           title: event.title,
           date: new Date(event.date),
+          endDate: event.end_date ? new Date(event.end_date) : undefined,
           type: event.type,
           description: event.description,
           clientName: event.client_name,
@@ -64,9 +67,32 @@ export default function EventsCalendar() {
   };
 
   const getEventsForDate = (date: Date) => {
-    return events.filter(event => 
-      event.date.toDateString() === date.toDateString()
-    );
+    return events.filter(event => {
+      // Create new Date objects to avoid modifying original dates
+      const eventStartDate = new Date(event.date);
+      const eventEndDate = event.endDate ? new Date(event.endDate) : new Date(event.date);
+      const checkDate = new Date(date);
+      
+      // Normalize all dates to compare only the date part (not time)
+      // Use setHours to ensure all dates are at midnight for fair comparison
+      const normalizedStart = new Date(eventStartDate);
+      normalizedStart.setHours(0, 0, 0, 0);
+      
+      const normalizedEnd = new Date(eventEndDate);
+      normalizedEnd.setHours(0, 0, 0, 0);
+      
+      const normalizedCheck = new Date(checkDate);
+      normalizedCheck.setHours(0, 0, 0, 0);
+      
+      // For single-day events, check exact date match
+      if (normalizedStart.getTime() === normalizedEnd.getTime()) {
+        return normalizedCheck.getTime() === normalizedStart.getTime();
+      }
+      
+      // For multi-day events, check if date falls within range (inclusive of end date)
+      return normalizedCheck.getTime() >= normalizedStart.getTime() && 
+             normalizedCheck.getTime() <= normalizedEnd.getTime();
+    });
   };
 
   const handleDateClick = (day: number) => {
@@ -89,6 +115,7 @@ export default function EventsCalendar() {
           title: eventTitle,
           description: eventDescription,
           date: selectedDate.toISOString(),
+          end_date: eventEndDate ? eventEndDate.toISOString() : null,
           type: eventType,
           client_name: clientName || null,
         }),
@@ -100,6 +127,7 @@ export default function EventsCalendar() {
         setEventTitle('');
         setEventDescription('');
         setClientName('');
+        setEventEndDate(null);
         setEditingEvent(null);
       } else {
         console.error('Failed to create event');
@@ -136,6 +164,7 @@ export default function EventsCalendar() {
     setEventTitle(event.title);
     setEventDescription(event.description || '');
     setClientName(event.clientName || '');
+    setEventEndDate(event.endDate || null);
     setEventType(event.type);
     setShowEventModal(true);
   };
@@ -154,6 +183,7 @@ export default function EventsCalendar() {
           title: eventTitle,
           description: eventDescription,
           date: selectedDate.toISOString(),
+          end_date: eventEndDate ? eventEndDate.toISOString() : null,
           type: eventType,
           client_name: clientName || null,
         }),
@@ -165,6 +195,7 @@ export default function EventsCalendar() {
         setEventTitle('');
         setEventDescription('');
         setClientName('');
+        setEventEndDate(null);
         setEditingEvent(null);
       } else {
         console.error('Failed to update event');
@@ -207,20 +238,44 @@ export default function EventsCalendar() {
             {day}
           </div>
           <div className="space-y-1 mt-1">
-            {dayEvents.slice(0, 2).map(event => (
-              <div
-                key={event.id}
-                className={`text-xs px-1 py-0.5 rounded truncate ${
-                  event.type === 'booked'
-                    ? 'bg-green-100 text-green-800'
-                    : event.type === 'blocked'
-                    ? 'bg-red-100 text-red-800'
-                    : 'bg-yellow-100 text-yellow-800'
-                }`}
-              >
-                {event.title}
-              </div>
-            ))}
+            {dayEvents.slice(0, 2).map(event => {
+              const isStart = event.date.toDateString() === date.toDateString();
+              const isMultiDay = event.endDate && event.endDate.toDateString() !== event.date.toDateString();
+              
+              return (
+                <div
+                  key={event.id}
+                  className={`text-xs px-1 py-0.5 rounded group relative ${
+                    event.type === 'booked'
+                      ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                      : event.type === 'blocked'
+                      ? 'bg-red-100 text-red-800 hover:bg-red-200'
+                      : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
+                  } ${isMultiDay ? 'border-l-2 border-gray-400' : ''}`}
+                >
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditEvent(event);
+                    }}
+                    className="cursor-pointer truncate pr-4"
+                    title="Click to edit event"
+                  >
+                    {isStart ? event.title : (isMultiDay ? '↔ ' + event.title : event.title)}
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteEvent(event.id);
+                    }}
+                    className="absolute right-0 top-0 bottom-0 w-4 opacity-0 group-hover:opacity-100 transition-opacity text-red-600 hover:text-red-800 text-xs flex items-center justify-center"
+                    title="Delete event"
+                  >
+                    ×
+                  </button>
+                </div>
+              );
+            })}
             {dayEvents.length > 2 && (
               <div className="text-xs text-gray-500">+{dayEvents.length - 2} more</div>
             )}
@@ -360,7 +415,10 @@ export default function EventsCalendar() {
                     </div>
                     <div className="font-medium text-gray-900 text-sm">{event.title}</div>
                     <div className="text-xs text-gray-500">
-                      {event.date.toLocaleDateString()}
+                      {event.endDate && event.endDate.toDateString() !== event.date.toDateString() 
+                        ? `${event.date.toLocaleDateString()} - ${event.endDate.toLocaleDateString()}`
+                        : event.date.toLocaleDateString()
+                      }
                     </div>
                     {event.clientName && (
                       <div className="text-xs text-gray-500">{event.clientName}</div>
@@ -425,6 +483,20 @@ export default function EventsCalendar() {
                   />
                 </div>
 
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    End Date (Optional)
+                  </label>
+                  <input
+                    type="date"
+                    value={eventEndDate ? eventEndDate.toISOString().split('T')[0] : ''}
+                    onChange={(e) => setEventEndDate(e.target.value ? new Date(e.target.value + 'T00:00:00') : null)}
+                    min={selectedDate ? selectedDate.toISOString().split('T')[0] : ''}
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Leave blank for single-day events</p>
+                </div>
+
                 {eventType !== 'blocked' && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -461,6 +533,7 @@ export default function EventsCalendar() {
                     setEventTitle('');
                     setEventDescription('');
                     setClientName('');
+                    setEventEndDate(null);
                     setEditingEvent(null);
                   }}
                   className="px-4 py-2 text-gray-600 hover:text-gray-800"

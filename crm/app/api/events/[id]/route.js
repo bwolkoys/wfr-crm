@@ -26,7 +26,7 @@ export async function GET(request, { params }) {
 export async function PUT(request, { params }) {
   try {
     const body = await request.json();
-    const { title, description, date, type, client_name, google_event_id } = body;
+    const { title, description, date, end_date, type, client_name, google_event_id } = body;
 
     // Check if event exists
     const existingEvent = db.getEvent(params.id);
@@ -53,11 +53,20 @@ export async function PUT(request, { params }) {
       );
     }
 
+    // Validate end_date if provided
+    if (end_date && new Date(end_date) < new Date(date)) {
+      return NextResponse.json(
+        { error: 'End date must be after start date' },
+        { status: 400 }
+      );
+    }
+
     // Update event in database
     const updatedEvent = db.updateEvent(params.id, {
       title,
       description,
       date,
+      end_date,
       type,
       client_name,
       google_event_id

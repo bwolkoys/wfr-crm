@@ -28,7 +28,7 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { title, description, date, type, client_name, google_event_id } = body;
+    const { title, description, date, end_date, type, client_name, google_event_id } = body;
 
     // Validate required fields
     if (!title || !date || !type) {
@@ -46,11 +46,20 @@ export async function POST(request) {
       );
     }
 
+    // Validate end_date if provided
+    if (end_date && new Date(end_date) < new Date(date)) {
+      return NextResponse.json(
+        { error: 'End date must be after start date' },
+        { status: 400 }
+      );
+    }
+
     // Create event in database
     const event = db.createEvent({
       title,
       description,
       date,
+      end_date,
       type,
       client_name,
       google_event_id

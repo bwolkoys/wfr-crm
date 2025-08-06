@@ -57,6 +57,7 @@ const createEventsTable = `
     title TEXT NOT NULL,
     description TEXT,
     date TEXT NOT NULL,
+    end_date TEXT,
     type TEXT NOT NULL CHECK(type IN ('booked', 'blocked', 'tentative')),
     client_name TEXT,
     google_event_id TEXT,
@@ -66,6 +67,13 @@ const createEventsTable = `
 `;
 
 db.exec(createEventsTable);
+
+// Add end_date column if it doesn't exist (for existing databases)
+try {
+  db.exec('ALTER TABLE events ADD COLUMN end_date TEXT');
+} catch (error) {
+  // Column already exists, ignore error
+}
 
 // Prepared statements for better performance
 const insertContact = db.prepare(`
@@ -125,8 +133,8 @@ const getFormSubmissions = db.prepare(`
 
 // Event-related prepared statements
 const insertEvent = db.prepare(`
-  INSERT INTO events (title, description, date, type, client_name, google_event_id, created_at, updated_at)
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  INSERT INTO events (title, description, date, end_date, type, client_name, google_event_id, created_at, updated_at)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 `);
 
 const getAllEvents = db.prepare('SELECT * FROM events ORDER BY date ASC');
@@ -134,7 +142,7 @@ const getEventById = db.prepare('SELECT * FROM events WHERE id = ?');
 
 const updateEvent = db.prepare(`
   UPDATE events 
-  SET title = ?, description = ?, date = ?, type = ?, client_name = ?, google_event_id = ?, updated_at = ?
+  SET title = ?, description = ?, date = ?, end_date = ?, type = ?, client_name = ?, google_event_id = ?, updated_at = ?
   WHERE id = ?
 `);
 
@@ -275,6 +283,7 @@ class DatabaseManager {
       eventData.title,
       eventData.description || null,
       eventData.date,
+      eventData.end_date || null,
       eventData.type,
       eventData.client_name || null,
       eventData.google_event_id || null,
@@ -290,6 +299,7 @@ class DatabaseManager {
       eventData.title,
       eventData.description || null,
       eventData.date,
+      eventData.end_date || null,
       eventData.type,
       eventData.client_name || null,
       eventData.google_event_id || null,
