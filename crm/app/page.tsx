@@ -159,15 +159,18 @@ export default function Dashboard() {
                 </div>
               </button>
               
-              <button className="bg-white hover:bg-gray-50 border-2 border-teal-200 hover:border-teal-300 text-gray-900 font-semibold py-6 px-6 rounded-xl transition-all duration-200 flex items-center gap-3 group">
+              <Link 
+                href="/events-calendar"
+                className="bg-white hover:bg-gray-50 border-2 border-teal-200 hover:border-teal-300 text-gray-900 font-semibold py-6 px-6 rounded-xl transition-all duration-200 flex items-center gap-3 group"
+              >
                 <div className="w-10 h-10 bg-teal-100 group-hover:bg-teal-200 rounded-lg flex items-center justify-center transition-colors">
                   <span className="text-teal-600 text-lg">📅</span>
                 </div>
                 <div className="text-left">
-                  <div className="font-semibold text-gray-900">Upcoming Events</div>
+                  <div className="font-semibold text-gray-900">Events Calendar</div>
                   <div className="text-sm text-gray-500">View scheduled activities</div>
                 </div>
-              </button>
+              </Link>
 
               <Link 
                 href="/form-builder"

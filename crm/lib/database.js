@@ -50,6 +50,23 @@ const createFormSubmissionsTable = `
 db.exec(createFormsTable);
 db.exec(createFormSubmissionsTable);
 
+// Create events table if it doesn't exist
+const createEventsTable = `
+  CREATE TABLE IF NOT EXISTS events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    description TEXT,
+    date TEXT NOT NULL,
+    type TEXT NOT NULL CHECK(type IN ('booked', 'blocked', 'tentative')),
+    client_name TEXT,
+    google_event_id TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`;
+
+db.exec(createEventsTable);
+
 // Prepared statements for better performance
 const insertContact = db.prepare(`
   INSERT INTO contacts (firstName, lastName, email, phone, source, tags, notes)
@@ -104,6 +121,29 @@ const getFormSubmissions = db.prepare(`
   JOIN forms f ON fs.form_id = f.id
   JOIN contacts c ON fs.contact_id = c.id
   ORDER BY fs.submitted_at DESC
+`);
+
+// Event-related prepared statements
+const insertEvent = db.prepare(`
+  INSERT INTO events (title, description, date, type, client_name, google_event_id, created_at, updated_at)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+`);
+
+const getAllEvents = db.prepare('SELECT * FROM events ORDER BY date ASC');
+const getEventById = db.prepare('SELECT * FROM events WHERE id = ?');
+
+const updateEvent = db.prepare(`
+  UPDATE events 
+  SET title = ?, description = ?, date = ?, type = ?, client_name = ?, google_event_id = ?, updated_at = ?
+  WHERE id = ?
+`);
+
+const deleteEvent = db.prepare('DELETE FROM events WHERE id = ?');
+
+const getEventsByDateRange = db.prepare(`
+  SELECT * FROM events 
+  WHERE date >= ? AND date <= ?
+  ORDER BY date ASC
 `);
 
 class DatabaseManager {
@@ -218,6 +258,53 @@ class DatabaseManager {
 
   getFormSubmissions() {
     return getFormSubmissions.all();
+  }
+
+  // Event methods
+  getAllEvents() {
+    return getAllEvents.all();
+  }
+
+  getEvent(id) {
+    return getEventById.get(id);
+  }
+
+  createEvent(eventData) {
+    const now = new Date().toISOString();
+    const result = insertEvent.run(
+      eventData.title,
+      eventData.description || null,
+      eventData.date,
+      eventData.type,
+      eventData.client_name || null,
+      eventData.google_event_id || null,
+      now,
+      now
+    );
+    return this.getEvent(result.lastInsertRowid);
+  }
+
+  updateEvent(id, eventData) {
+    const now = new Date().toISOString();
+    updateEvent.run(
+      eventData.title,
+      eventData.description || null,
+      eventData.date,
+      eventData.type,
+      eventData.client_name || null,
+      eventData.google_event_id || null,
+      now,
+      id
+    );
+    return this.getEvent(id);
+  }
+
+  deleteEvent(id) {
+    return deleteEvent.run(id);
+  }
+
+  getEventsByDateRange(startDate, endDate) {
+    return getEventsByDateRange.all(startDate, endDate);
   }
 }
 
